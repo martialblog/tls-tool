@@ -11,54 +11,69 @@ usage: tls-tool [<flags>] <command> [<args> ...]
 A tool for creating TLS certificates quickly
 
 Flags:
-  --help  Show context-sensitive help (also try --help-long and --help-man).
+  --help  Show context-sensitive help
 
 Commands:
-  help [<command>...]
-    Show help.
-
-  ca create [<flags>]
+  ca [<flags>]
     Create a new certificate authority
 
-  cert create [<flags>]
+  cert [<flags>]
     Create a new certificate
 ```
-```
-$ tls-tool ca create --help
-usage: tls-tool ca create [<flags>]
+
+Usage of the CA subcommand:
+
+```bash
+tls-tool ca --help
+usage: tls-tool ca [<flags>]
 
 Create a new certificate authority
 
 Flags:
-  --help                       Show context-sensitive help (also try --help-long and --help-man).
-  --domain="ribbybibby.me"     Domain
-  --days=1825                  Provide number of days the CA is valid for from now on
-  --name-constraint            Add name constraints for the CA?
-  --additional-name-constraint=ADDITIONAL-NAME-CONSTRAINT ...
-                               Add additional name constraints for the CA.
-  --country="GB"               Country
-  --postal-code="SW18XXX"      Postal code
-  --province="England"         Province
-  --locality="London"          Locality
-  --street-address="123 Fake St"
-                               Street Address
-  --organization="ribbybibby"  Organization
+-additional-name-constraint value
+      Add additional name constraints for the CA
+-country string
+      Country code for the new CA (default "GB")
+-days int
+      Number of days the CA is valid (default 1825)
+-domain string
+      Domain name for the new CA (default "ribbybibby.me")
+-locality string
+      Locality for the new CA (default "London")
+-name-constraint
+      Add name constraints for the CA
+-organization string
+      Organization for the new CA (default "ribbybibby")
+-postal-code string
+      Postal code for the new CA (default "SW18XXX")
+-province string
+      Province for the new CA (default "England")
+-street-address string
+      Street Address for the new CA (default "123 Fake St")
 ```
-```
-$ tls-tool cert create --help
-usage: tls-tool cert create [<flags>]
+
+Usage of the certificate subcommand:
+
+```bash
+tls-tool cert --help
+
+usage: tls-tool cert [<flags>]
 
 Create a new certificate
 
 Flags:
-  --help                    Show context-sensitive help (also try --help-long and --help-man).
-  --ca=ca.pem               Provide path to the ca
-  --key=ca-key.pem          Provide path to the key
-  --days=365                Provide number of days the certificate is valid for from now on
-  --domain="ribbybibby.me"  Domain
-  --additional-dnsname=ADDITIONAL-DNSNAME ...
-                            Provide additional dnsnames for Subject Alternative Names.
-  --insecure                Optionally allow the creation of purposely expired or otherwise invalid certs
+-additional-dnsname value
+      Provide additional dnsnames for Subject Alternative Names
+-ca string
+      Path to the CA certificate file (default "ca.pem")
+-days int
+      Number of days the certificate is valid for from now on (default 365)
+-domain string
+      Domain for the new certificate (default "ribbybibby.me")
+-insecure
+      Optionally allow the creation of purposely expired or otherwise invalid certs
+-key string
+      Path to the CA key file (default "ca-key.pem")
 ```
 
 ## Examples
@@ -66,7 +81,7 @@ Flags:
 Create a CA:
 
 ```bash
-$ tls-tool ca create
+tls-tool ca
 ==> Saved ca.pem
 ==> Saved ca-key.pem
 ```
@@ -74,8 +89,15 @@ $ tls-tool ca create
 Create a certificate:
 
 ```bash
-$ tls-tool cert create
+tls-tool cert
 ==> Using ca.pem and ca-key.pem
 ==> Saved cert-ribbybibby.me-0.pem
 ==> Saved cert-ribbybibby.me-0-key.pem
+```
+
+```bash
+tls-tool cert -additional-dnsname foobar.internal -additional-dnsname example.internal
+==> Using ca.pem and ca-key.pem
+==> Saved cert-ribbybibby.me-1.pem
+==> Saved cert-ribbybibby.me-1-key.pem
 ```
