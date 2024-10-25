@@ -2,46 +2,77 @@ package main
 
 import (
 	"crypto/x509/pkix"
-	"log"
+	"flag"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ribbybibby/tls-tool/tls/ca"
 	"github.com/ribbybibby/tls-tool/tls/cert"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-var (
-	app = kingpin.New("tls-tool", "A tool for creating TLS certificates quickly")
+func printUsage() {
+	fmt.Fprintln(os.Stderr, `A tool for creating TLS certificates quickly
 
-	caCmd                             = app.Command("ca", "CA")
-	caCreate                          = caCmd.Command("create", "Create a new certificate authority")
-	caCreateDomain                    = caCreate.Flag("domain", "Domain").Default("ribbybibby.me").String()
-	caCreateDays                      = caCreate.Flag("days", "Provide number of days the CA is valid for from now on").Default("1825").Int()
-	caCreateNameConstraint            = caCreate.Flag("name-constraint", "Add name constraints for the CA?").Default("false").Bool()
-	caCreateAdditionalNameConstraints = caCreate.Flag("additional-name-constraint", "Add additional name constraints for the CA.").Strings()
-	caCreateCountry                   = caCreate.Flag("country", "Country").Default("GB").String()
-	caCreatePostalCode                = caCreate.Flag("postal-code", "Postal code").Default("SW18XXX").String()
-	caCreateProvince                  = caCreate.Flag("province", "Province").Default("England").String()
-	caCreateLocality                  = caCreate.Flag("locality", "Locality").Default("London").String()
-	caCreateStreetAddress             = caCreate.Flag("street-address", "Street Address").Default("123 Fake St").String()
-	caCreateOrganization              = caCreate.Flag("organization", "Organization").Default("ribbybibby").String()
+Usage:
+	tls-tool [command]
 
-	certCmd                      = app.Command("cert", "Certificates")
-	certCreate                   = certCmd.Command("create", "Create a new certificate")
-	certCreateCAFile             = certCreate.Flag("ca", "Provide path to the ca").Default("ca.pem").ExistingFile()
-	certCreateKeyFile            = certCreate.Flag("key", "Provide path to the key").Default("ca-key.pem").ExistingFile()
-	certCreateDays               = certCreate.Flag("days", "Provide number of days the certificate is valid for from now on").Default("365").Int()
-	certCreateDomain             = certCreate.Flag("domain", "Domain").Default("ribbybibby.me").String()
-	certCreateAdditionalDNSnames = certCreate.Flag("additional-dnsname", "Provide additional dnsnames for Subject Alternative Names.").Strings()
-	certCreateInsecure           = certCreate.Flag("insecure", "Optionally allow the creation of purposely expired or otherwise invalid certs").Default("false").Bool()
-)
+Available Commands:
+	ca     Create a new certificate authority
+	cert   Create a new key and certificate`)
+	os.Exit(1)
+}
+
+type stringSliceFlag []string
+
+func (s *stringSliceFlag) Set(value string) error {
+	*s = append(*s, value)
+	return nil
+}
+
+func (s *stringSliceFlag) String() string {
+	return strings.Join(*s, ", ")
+}
 
 func main() {
+	flag.Usage = printUsage
 
-	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
-	case caCreate.FullCommand():
+	caCmd := flag.NewFlagSet("ca", flag.ExitOnError)
+
+	var caCreateAdditionalNameConstraints stringSliceFlag
+	caCmd.Var(&caCreateAdditionalNameConstraints, "additional-name-constraint", "Add additional name constraints for the CA")
+
+	caCreateDomain := caCmd.String("domain", "ribbybibby.me", "Domain name for the new CA")
+	caCreateDays := caCmd.Int("days", 1825, "Number of days the CA is valid")
+	caCreateNameConstraint := caCmd.Bool("name-constraint", false, "Add name constraints for the CA")
+	caCreateCountry := caCmd.String("country", "GB", "Country code for the new CA")
+	caCreatePostalCode := caCmd.String("postal-code", "SW18XXX", "Postal code for the new CA")
+	caCreateProvince := caCmd.String("province", "England", "Province for the new CA")
+	caCreateLocality := caCmd.String("locality", "London", "Locality for the new CA")
+	caCreateStreetAddress := caCmd.String("street-address", "123 Fake St", "Street Address for the new CA")
+	caCreateOrganization := caCmd.String("organization", "ribbybibby", "Organization for the new CA")
+
+	certCmd := flag.NewFlagSet("cert", flag.ExitOnError)
+
+	var certCreateAdditionalDNSnames stringSliceFlag
+	certCmd.Var(&certCreateAdditionalDNSnames, "additional-dnsname", "Provide additional dnsnames for Subject Alternative Names")
+
+	certCreateCAFile := certCmd.String("ca", "ca.pem", "Path to the CA certificate file")
+	certCreateKeyFile := certCmd.String("key", "ca-key.pem", "Path to the CA key file")
+	certCreateDays := certCmd.Int("days", 365, "Number of days the certificate is valid for from now on")
+	certCreateDomain := certCmd.String("domain", "ribbybibby.me", "Domain for the new certificate")
+	certCreateInsecure := certCmd.Bool("insecure", false, "Optionally allow the creation of purposely expired or otherwise invalid certs")
+
+	if len(os.Args) < 2 {
+		printUsage()
+	}
+
+	switch os.Args[1] {
+	case "ca":
+		caCmd.Parse(os.Args[2:])
+
 		c := &ca.CA{
-			AdditionalConstraints: *caCreateAdditionalNameConstraints,
+			AdditionalConstraints: caCreateAdditionalNameConstraints,
 			Constraint:            *caCreateNameConstraint,
 			Days:                  *caCreateDays,
 			Domain:                *caCreateDomain,
@@ -56,21 +87,24 @@ func main() {
 		}
 		err := c.Create()
 		if err != nil {
-			log.Fatalf(err.Error())
+			fmt.Fprintln(os.Stderr, err.Error())
 		}
-	case certCreate.FullCommand():
+	case "cert":
+		certCmd.Parse(os.Args[2:])
 
 		c := &cert.Cert{
 			CAFile:   *certCreateCAFile,
 			Days:     *certCreateDays,
-			DNSNames: *certCreateAdditionalDNSnames,
+			DNSNames: certCreateAdditionalDNSnames,
 			Domain:   *certCreateDomain,
 			Insecure: *certCreateInsecure,
 			KeyFile:  *certCreateKeyFile,
 		}
 		err := c.Create()
 		if err != nil {
-			log.Fatalf(err.Error())
+			fmt.Fprintln(os.Stderr, err.Error())
 		}
+	default:
+		printUsage()
 	}
 }
