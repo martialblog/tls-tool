@@ -11,6 +11,11 @@ import (
 	"github.com/ribbybibby/tls-tool/tls/cert"
 )
 
+func printError(err error) {
+	fmt.Fprintln(os.Stderr, err.Error())
+	os.Exit(1)
+}
+
 func printUsage() {
 	fmt.Fprintln(os.Stderr, `A tool for creating TLS certificates quickly
 
@@ -40,6 +45,7 @@ func main() {
 	caCmd := flag.NewFlagSet("ca", flag.ExitOnError)
 
 	var caCreateAdditionalNameConstraints stringSliceFlag
+
 	caCmd.Var(&caCreateAdditionalNameConstraints, "additional-name-constraint", "Add additional name constraints for the CA")
 
 	caCreateDomain := caCmd.String("domain", "ribbybibby.me", "Domain name for the new CA")
@@ -55,6 +61,7 @@ func main() {
 	certCmd := flag.NewFlagSet("cert", flag.ExitOnError)
 
 	var certCreateAdditionalDNSnames stringSliceFlag
+
 	certCmd.Var(&certCreateAdditionalDNSnames, "additional-dnsname", "Provide additional dnsnames for Subject Alternative Names")
 
 	certCreateCAFile := certCmd.String("ca", "ca.pem", "Path to the CA certificate file")
@@ -69,7 +76,11 @@ func main() {
 
 	switch os.Args[1] {
 	case "ca":
-		caCmd.Parse(os.Args[2:])
+		parseErr := caCmd.Parse(os.Args[2:])
+
+		if parseErr != nil {
+			printError(parseErr)
+		}
 
 		c := &ca.CA{
 			AdditionalConstraints: caCreateAdditionalNameConstraints,
@@ -86,11 +97,16 @@ func main() {
 			},
 		}
 		err := c.Create()
+
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
+			printError(err)
 		}
 	case "cert":
-		certCmd.Parse(os.Args[2:])
+		parseErr := certCmd.Parse(os.Args[2:])
+
+		if parseErr != nil {
+			printError(parseErr)
+		}
 
 		c := &cert.Cert{
 			CAFile:   *certCreateCAFile,
@@ -101,8 +117,9 @@ func main() {
 			KeyFile:  *certCreateKeyFile,
 		}
 		err := c.Create()
+
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
+			printError(err)
 		}
 	default:
 		printUsage()

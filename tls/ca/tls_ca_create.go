@@ -26,21 +26,25 @@ func (ca *CA) Create() (err error) {
 	if !(tls.FileDoesNotExist(certFileName)) {
 		return errors.New(certFileName + " already exists!")
 	}
+
 	if !(tls.FileDoesNotExist(pkFileName)) {
 		return errors.New(pkFileName + " already exists!")
 	}
 
 	serialNumber, err := tls.GenerateSerialNumber()
+
 	if err != nil {
 		return err
 	}
 
 	signer, pk, err := tls.GeneratePrivateKey()
+
 	if err != nil {
 		return err
 	}
 
 	var constraints []string
+
 	if ca.Constraint {
 		constraints = append(ca.AdditionalConstraints, []string{ca.Domain, "localhost"}...)
 	}
@@ -50,22 +54,28 @@ func (ca *CA) Create() (err error) {
 	}
 
 	caCert, err := tls.GenerateCA(signer, serialNumber, ca.Days, constraints, ca.Subject)
+
 	if err != nil {
-		return fmt.Errorf("==>" + err.Error())
+		return err
 	}
 
 	caFile, err := os.Create(certFileName)
+
 	if err != nil {
 		return err
 	}
+
 	caFile.WriteString(caCert)
 	fmt.Println("==> Saved " + certFileName)
+
 	pkFile, err := os.Create(pkFileName)
+
 	if err != nil {
 		return err
 	}
+
 	pkFile.WriteString(pk)
 	fmt.Println("==> Saved " + pkFileName)
 
-	return
+	return nil
 }
