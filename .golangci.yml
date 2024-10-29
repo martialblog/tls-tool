@@ -3,17 +3,18 @@ run:
   tests: false
 issues:
   exclude-rules:
-    - path: 'tls/cert/tls_cert_create.go'
+    - path: 'tls/cert.go'
       linters:
         - funlen
     - path: 'tls-tool.go'
       linters:
         - funlen
-    - path: 'tls/(.+)create.go'
+    - path: 'tls/cert.go'
       linters:
         - errcheck
-    - path: 'tls/ca/tls_ca_create.go'
+    - path: 'tls/ca.go'
       linters:
+        - errcheck
         - gocritic
     - path: 'tls/generate.go'
       linters:
