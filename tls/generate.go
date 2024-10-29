@@ -10,6 +10,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
 	"net"
@@ -21,28 +22,34 @@ import (
 func GenerateSerialNumber() (*big.Int, error) {
 	l := new(big.Int).Lsh(big.NewInt(1), 128)
 	s, err := rand.Int(rand.Reader, l)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return s, nil
 }
 
 // GeneratePrivateKey generates a new ecdsa private key
 func GeneratePrivateKey() (crypto.Signer, string, error) {
 	pk, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+
 	if err != nil {
-		return nil, "", fmt.Errorf("error generating private key: %s", err)
+		return nil, "", fmt.Errorf("error generating private key: %w", err)
 	}
 
 	bs, err := x509.MarshalECPrivateKey(pk)
+
 	if err != nil {
-		return nil, "", fmt.Errorf("error generating private key: %s", err)
+		return nil, "", fmt.Errorf("error generating private key: %w", err)
 	}
 
 	var buf bytes.Buffer
+
 	err = pem.Encode(&buf, &pem.Block{Type: "EC PRIVATE KEY", Bytes: bs})
+
 	if err != nil {
-		return nil, "", fmt.Errorf("error encoding private key: %s", err)
+		return nil, "", fmt.Errorf("error encoding private key: %w", err)
 	}
 
 	return pk, buf.String(), nil
@@ -72,23 +79,26 @@ func GenerateCA(signer crypto.Signer, sn *big.Int, days int, constraints []strin
 		template.PermittedDNSDomainsCritical = true
 		template.PermittedDNSDomains = constraints
 	}
-	bs, err := x509.CreateCertificate(
-		rand.Reader, &template, &template, signer.Public(), signer)
+
+	bs, err := x509.CreateCertificate(rand.Reader, &template, &template, signer.Public(), signer)
+
 	if err != nil {
-		return "", fmt.Errorf("error generating CA certificate: %s", err)
+		return "", fmt.Errorf("error generating CA certificate: %w", err)
 	}
 
 	var buf bytes.Buffer
+
 	err = pem.Encode(&buf, &pem.Block{Type: "CERTIFICATE", Bytes: bs})
+
 	if err != nil {
-		return "", fmt.Errorf("error encoding private key: %s", err)
+		return "", fmt.Errorf("error encoding private key: %w", err)
 	}
 
 	return buf.String(), nil
 }
 
 // GenerateCert generates a new certificate for agent TLS (not to be confused with Connect TLS)
-func GenerateCert(signer crypto.Signer, ca string, sn *big.Int, name string, days int, DNSNames []string, IPAddresses []net.IP, extKeyUsage []x509.ExtKeyUsage) (string, string, error) {
+func GenerateCert(signer crypto.Signer, ca string, sn *big.Int, name string, days int, dnsnames []string, ipaddresses []net.IP, extKeyUsage []x509.ExtKeyUsage) (string, string, error) {
 	parent, err := parseCert(ca)
 	if err != nil {
 		return "", "", err
@@ -114,19 +124,22 @@ func GenerateCert(signer crypto.Signer, ca string, sn *big.Int, name string, day
 		NotAfter:              time.Now().AddDate(0, 0, days),
 		NotBefore:             time.Now(),
 		SubjectKeyId:          id,
-		DNSNames:              DNSNames,
-		IPAddresses:           IPAddresses,
+		DNSNames:              dnsnames,
+		IPAddresses:           ipaddresses,
 	}
 
 	bs, err := x509.CreateCertificate(rand.Reader, &template, parent, signee.Public(), signer)
+
 	if err != nil {
 		return "", "", err
 	}
 
 	var buf bytes.Buffer
+
 	err = pem.Encode(&buf, &pem.Block{Type: "CERTIFICATE", Bytes: bs})
+
 	if err != nil {
-		return "", "", fmt.Errorf("error encoding private key: %s", err)
+		return "", "", fmt.Errorf("error encoding private key: %w", err)
 	}
 
 	return buf.String(), pk, nil
@@ -150,18 +163,19 @@ func keyID(raw interface{}) ([]byte, error) {
 
 	// String formatted
 	kID := sha256.Sum256(bs)
-	return []byte(strings.Replace(fmt.Sprintf("% x", kID), " ", ":", -1)), nil
+
+	return []byte(strings.ReplaceAll(fmt.Sprintf("% x", kID), " ", ":")), nil
 }
 
 func parseCert(pemValue string) (*x509.Certificate, error) {
 	// The _ result below is not an error but the remaining PEM bytes.
 	block, _ := pem.Decode([]byte(pemValue))
 	if block == nil {
-		return nil, fmt.Errorf("no PEM-encoded data found")
+		return nil, errors.New("no PEM-encoded data found")
 	}
 
 	if block.Type != "CERTIFICATE" {
-		return nil, fmt.Errorf("first PEM-block should be CERTIFICATE type")
+		return nil, errors.New("first PEM-block should be CERTIFICATE type")
 	}
 
 	return x509.ParseCertificate(block.Bytes)
@@ -173,7 +187,7 @@ func ParseSigner(pemValue string) (crypto.Signer, error) {
 	// The _ result below is not an error but the remaining PEM bytes.
 	block, _ := pem.Decode([]byte(pemValue))
 	if block == nil {
-		return nil, fmt.Errorf("no PEM-encoded data found")
+		return nil, errors.New("no PEM-encoded data found")
 	}
 
 	switch block.Type {
@@ -188,20 +202,24 @@ func ParseSigner(pemValue string) (crypto.Signer, error) {
 func Verify(caString, certString, dns string) error {
 	roots := x509.NewCertPool()
 	ok := roots.AppendCertsFromPEM([]byte(caString))
+
 	if !ok {
-		return fmt.Errorf("failed to parse root certificate")
+		return errors.New("failed to parse root certificate")
 	}
 
 	cert, err := parseCert(certString)
+
 	if err != nil {
-		return fmt.Errorf("failed to parse certificate")
+		return errors.New("failed to parse certificate")
 	}
 
+	// TODO why fmt.Sprintf?
 	opts := x509.VerifyOptions{
 		DNSName: fmt.Sprintf(dns),
 		Roots:   roots,
 	}
 
 	_, err = cert.Verify(opts)
+
 	return err
 }

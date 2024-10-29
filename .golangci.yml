@@ -1,0 +1,56 @@
+run:
+  timeout: 5m
+  tests: false
+issues:
+  exclude-rules:
+    - path: 'tls/cert/tls_cert_create.go'
+      linters:
+        - funlen
+    - path: 'tls-tool.go'
+      linters:
+        - funlen
+    - path: 'tls/(.+)create.go'
+      linters:
+        - errcheck
+    - path: 'tls/ca/tls_ca_create.go'
+      linters:
+        - gocritic
+    - path: 'tls/generate.go'
+      linters:
+        - govet
+        - perfsprint
+        - staticcheck
+linters:
+   enable-all: true
+   disable:
+     - cyclop
+     - depguard
+     - exhaustivestruct
+     - exhaustruct
+     - forbidigo
+     - forcetypeassert
+     - gci
+     - gochecknoglobals
+     - gochecknoinits
+     - godox
+     - godot
+     - goerr113
+     - err113
+     - gofumpt
+     - gomnd
+     - mnd
+     - lll
+     - musttag
+     - nlreturn
+     - nolintlint
+     - nonamedreturns
+     - tagliatelle
+     - varnamelen
+     - wrapcheck
+linters-settings:
+  estif:
+    min-complexity: 4
+  maligned:
+    suggest-new: true
+  funlen:
+    ignore-comments: true
