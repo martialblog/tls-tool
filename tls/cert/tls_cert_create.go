@@ -15,12 +15,13 @@ import (
 
 // Cert is a certificate
 type Cert struct {
-	CAFile   string
-	Domain   string
-	Days     int
-	KeyFile  string
-	DNSNames []string
-	Insecure bool
+	CAFile      string
+	Domain      string
+	Days        int
+	KeyFile     string
+	DNSNames    []string
+	IPAddresses []net.IP
+	Insecure    bool
 }
 
 // Create the certificate
@@ -29,7 +30,6 @@ func (c *Cert) Create() (err error) {
 		signer       crypto.Signer
 		serialNumber *big.Int
 		dnsnames     []string
-		ipaddresses  []net.IP
 		extKeyUsage  []x509.ExtKeyUsage
 		prefix       string
 	)
@@ -49,8 +49,7 @@ func (c *Cert) Create() (err error) {
 	}
 
 	dnsnames = append(dnsnames, []string{c.Domain, "localhost"}...)
-	// TODO make IP a CLI flag
-	ipaddresses = []net.IP{net.ParseIP("127.0.0.1")}
+
 	// TODO make these a CLI flag
 	extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth}
 	prefix = "cert-" + c.Domain
@@ -100,7 +99,7 @@ func (c *Cert) Create() (err error) {
 		return err
 	}
 
-	public, private, err := tls.GenerateCert(signer, string(caCert), serialNumber, c.Domain, c.Days, dnsnames, ipaddresses, extKeyUsage)
+	public, private, err := tls.GenerateCert(signer, string(caCert), serialNumber, c.Domain, c.Days, dnsnames, c.IPAddresses, extKeyUsage)
 
 	if err != nil {
 		return err
