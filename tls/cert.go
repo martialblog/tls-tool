@@ -111,6 +111,7 @@ func (c *Cert) Create() (err error) {
 		return err
 	}
 
+	//nolint:errcheck
 	certFile.WriteString(public)
 
 	pkFile, err := os.Create(pkFileName)
@@ -119,6 +120,7 @@ func (c *Cert) Create() (err error) {
 		return err
 	}
 
+	//nolint:errcheck
 	pkFile.WriteString(private)
 
 	return nil

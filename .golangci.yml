@@ -1,26 +1,6 @@
 run:
   timeout: 5m
   tests: false
-issues:
-  exclude-rules:
-    - path: 'tls/cert.go'
-      linters:
-        - funlen
-    - path: 'tls-tool.go'
-      linters:
-        - funlen
-    - path: 'tls/cert.go'
-      linters:
-        - errcheck
-    - path: 'tls/ca.go'
-      linters:
-        - errcheck
-        - gocritic
-    - path: 'tls/generate.go'
-      linters:
-        - govet
-        - perfsprint
-        - staticcheck
 linters:
    enable-all: true
    disable:
@@ -28,6 +8,7 @@ linters:
      - depguard
      - exhaustivestruct
      - exhaustruct
+     - funlen
      - forbidigo
      - forcetypeassert
      - gci
@@ -53,5 +34,3 @@ linters-settings:
     min-complexity: 4
   maligned:
     suggest-new: true
-  funlen:
-    ignore-comments: true

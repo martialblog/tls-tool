@@ -223,9 +223,8 @@ func Verify(caString, certString, dns string) error {
 		return errors.New("failed to parse certificate")
 	}
 
-	// TODO why fmt.Sprintf?
 	opts := x509.VerifyOptions{
-		DNSName: fmt.Sprintf(dns),
+		DNSName: dns,
 		Roots:   roots,
 	}
 

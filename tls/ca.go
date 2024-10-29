@@ -4,6 +4,7 @@ import (
 	"crypto/x509/pkix"
 	"errors"
 	"os"
+	"slices"
 )
 
 // CA is a certificate authority
@@ -41,10 +42,10 @@ func (ca *CA) Create() (err error) {
 		return err
 	}
 
-	var constraints []string
+	constraints := make([]string, 0, len(ca.AdditionalConstraints)+1)
 
 	if ca.Constraint {
-		constraints = append(ca.AdditionalConstraints, []string{ca.Domain, "localhost"}...)
+		constraints = slices.Concat(ca.AdditionalConstraints, []string{ca.Domain, "localhost"})
 	}
 
 	if ca.Subject.CommonName == "" {
@@ -63,6 +64,7 @@ func (ca *CA) Create() (err error) {
 		return err
 	}
 
+	//nolint:errcheck
 	caFile.WriteString(caCert)
 
 	pkFile, err := os.Create(pkFileName)
@@ -71,6 +73,7 @@ func (ca *CA) Create() (err error) {
 		return err
 	}
 
+	//nolint:errcheck
 	pkFile.WriteString(pk)
 
 	return nil
