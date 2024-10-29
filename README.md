@@ -5,13 +5,13 @@ Fork of https://github.com/ribbybibby/tls-tool
 ## Usage
 
 ```bash
-$ tls-tool --help
+tls-tool -help
 usage: tls-tool [<flags>] <command> [<args> ...]
 
 A tool for creating TLS certificates quickly
 
 Flags:
-  --help  Show context-sensitive help
+  -help  Show context-sensitive help
 
 Commands:
   ca [<flags>]
@@ -24,7 +24,7 @@ Commands:
 Usage of the CA subcommand:
 
 ```bash
-tls-tool ca --help
+tls-tool ca -help
 usage: tls-tool ca [<flags>]
 
 Create a new certificate authority
@@ -55,7 +55,7 @@ Flags:
 Usage of the certificate subcommand:
 
 ```bash
-tls-tool cert --help
+tls-tool cert -help
 
 usage: tls-tool cert [<flags>]
 
@@ -84,22 +84,29 @@ Create a CA:
 
 ```bash
 tls-tool ca
-==> Saved ca.pem
-==> Saved ca-key.pem
+
+ca.pem
+ca-key.pem
 ```
 
 Create a certificate:
 
 ```bash
 tls-tool cert
-==> Using ca.pem and ca-key.pem
-==> Saved cert-ribbybibby.me-0.pem
-==> Saved cert-ribbybibby.me-0-key.pem
+
+cert-ribbybibby.me-0.pem
+cert-ribbybibby.me-0-key.pem
 ```
 
 ```bash
 tls-tool cert -additional-dnsname foobar.internal -additional-dnsname example.internal
-==> Using ca.pem and ca-key.pem
-==> Saved cert-ribbybibby.me-1.pem
-==> Saved cert-ribbybibby.me-1-key.pem
+
+cert-ribbybibby.me-1.pem
+cert-ribbybibby.me-1-key.pem
+```
+
+Verification:
+
+```bash
+openssl x509 -inform pem -noout -text -in cert-ribbybibby.me-0.pem
 ```
