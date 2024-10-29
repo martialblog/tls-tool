@@ -72,6 +72,8 @@ Flags:
       Domain for the new certificate (default "ribbybibby.me")
 -insecure
       Optionally allow the creation of purposely expired or otherwise invalid certs
+-ipaddresses value
+      Provide IPs for Subject Alternative Names
 -key string
       Path to the CA key file (default "ca-key.pem")
 ```

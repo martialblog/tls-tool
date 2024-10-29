@@ -4,6 +4,7 @@ import (
 	"crypto/x509/pkix"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 
@@ -28,6 +29,7 @@ Available Commands:
 	os.Exit(1)
 }
 
+// stringSliceFlag stores multiple string flags
 type stringSliceFlag []string
 
 func (s *stringSliceFlag) Set(value string) error {
@@ -37,6 +39,31 @@ func (s *stringSliceFlag) Set(value string) error {
 
 func (s *stringSliceFlag) String() string {
 	return strings.Join(*s, ", ")
+}
+
+// ipsliceFlag stores multiple net.IP flags
+type ipsliceFlag []net.IP
+
+func (s *ipsliceFlag) Set(value string) error {
+	ip := net.ParseIP(strings.TrimSpace(value))
+
+	if ip == nil {
+		return fmt.Errorf("invalid IP address: %s", value)
+	}
+
+	*s = append(*s, ip)
+
+	return nil
+}
+
+func (s *ipsliceFlag) String() string {
+	ips := make([]string, 0, len(*s))
+
+	for _, ip := range *s {
+		ips = append(ips, ip.String())
+	}
+
+	return strings.Join(ips, ", ")
 }
 
 func main() {
@@ -62,7 +89,10 @@ func main() {
 
 	var certCreateAdditionalDNSnames stringSliceFlag
 
+	var certCreateIPaddresses ipsliceFlag
+
 	certCmd.Var(&certCreateAdditionalDNSnames, "additional-dnsname", "Provide additional dnsnames for Subject Alternative Names")
+	certCmd.Var(&certCreateIPaddresses, "ipaddresses", "Provide IPs for Subject Alternative Names")
 
 	certCreateCAFile := certCmd.String("ca", "ca.pem", "Path to the CA certificate file")
 	certCreateKeyFile := certCmd.String("key", "ca-key.pem", "Path to the CA key file")
@@ -109,12 +139,13 @@ func main() {
 		}
 
 		c := &cert.Cert{
-			CAFile:   *certCreateCAFile,
-			Days:     *certCreateDays,
-			DNSNames: certCreateAdditionalDNSnames,
-			Domain:   *certCreateDomain,
-			Insecure: *certCreateInsecure,
-			KeyFile:  *certCreateKeyFile,
+			CAFile:      *certCreateCAFile,
+			Days:        *certCreateDays,
+			DNSNames:    certCreateAdditionalDNSnames,
+			Domain:      *certCreateDomain,
+			Insecure:    *certCreateInsecure,
+			KeyFile:     *certCreateKeyFile,
+			IPAddresses: certCreateIPaddresses,
 		}
 		err := c.Create()
 
