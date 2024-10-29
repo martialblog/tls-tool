@@ -85,8 +85,6 @@ func (c *Cert) Create() (err error) {
 		return fmt.Errorf("error reading CA key: %w", err)
 	}
 
-	fmt.Println("==> Using " + c.CAFile + " and " + c.KeyFile)
-
 	signer, err = tls.ParseSigner(string(caKey))
 
 	if err != nil {
@@ -116,7 +114,6 @@ func (c *Cert) Create() (err error) {
 	}
 
 	certFile.WriteString(public)
-	fmt.Println("==> Saved " + certFileName)
 
 	pkFile, err := os.Create(pkFileName)
 
@@ -125,7 +122,6 @@ func (c *Cert) Create() (err error) {
 	}
 
 	pkFile.WriteString(private)
-	fmt.Println("==> Saved " + pkFileName)
 
 	return nil
 }
