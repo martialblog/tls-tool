@@ -8,8 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ribbybibby/tls-tool/tls/ca"
-	"github.com/ribbybibby/tls-tool/tls/cert"
+	"github.com/ribbybibby/tls-tool/tls"
 )
 
 func printError(err error) {
@@ -112,7 +111,7 @@ func main() {
 			printError(parseErr)
 		}
 
-		c := &ca.CA{
+		c := &tls.CA{
 			AdditionalConstraints: caCreateAdditionalNameConstraints,
 			Constraint:            *caCreateNameConstraint,
 			Days:                  *caCreateDays,
@@ -138,7 +137,7 @@ func main() {
 			printError(parseErr)
 		}
 
-		c := &cert.Cert{
+		c := &tls.Cert{
 			CAFile:      *certCreateCAFile,
 			Days:        *certCreateDays,
 			DNSNames:    certCreateAdditionalDNSnames,

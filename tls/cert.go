@@ -1,4 +1,4 @@
-package cert
+package tls
 
 import (
 	"crypto"
@@ -9,8 +9,6 @@ import (
 	"net"
 	"os"
 	"strings"
-
-	"github.com/ribbybibby/tls-tool/tls"
 )
 
 // Cert is a certificate
@@ -60,7 +58,7 @@ func (c *Cert) Create() (err error) {
 		tmpCert := fmt.Sprintf("%s-%d.pem", prefix, i)
 		tmpPk := fmt.Sprintf("%s-%d-key.pem", prefix, i)
 
-		if tls.FileDoesNotExist(tmpCert) && tls.FileDoesNotExist(tmpPk) {
+		if fileDoesNotExist(tmpCert) && fileDoesNotExist(tmpPk) {
 			certFileName = tmpCert
 			pkFileName = tmpPk
 
@@ -85,27 +83,25 @@ func (c *Cert) Create() (err error) {
 		return fmt.Errorf("error reading CA key: %w", err)
 	}
 
-	fmt.Println("==> Using " + c.CAFile + " and " + c.KeyFile)
-
-	signer, err = tls.ParseSigner(string(caKey))
+	signer, err = ParseSigner(string(caKey))
 
 	if err != nil {
 		return err
 	}
 
-	serialNumber, err = tls.GenerateSerialNumber()
+	serialNumber, err = GenerateSerialNumber()
 
 	if err != nil {
 		return err
 	}
 
-	public, private, err := tls.GenerateCert(signer, string(caCert), serialNumber, c.Domain, c.Days, dnsnames, c.IPAddresses, extKeyUsage)
+	public, private, err := GenerateCert(signer, string(caCert), serialNumber, c.Domain, c.Days, dnsnames, c.IPAddresses, extKeyUsage)
 
 	if err != nil {
 		return err
 	}
 
-	if err = tls.Verify(string(caCert), public, c.Domain); err != nil && !c.Insecure {
+	if err = Verify(string(caCert), public, c.Domain); err != nil && !c.Insecure {
 		return err
 	}
 
@@ -116,7 +112,6 @@ func (c *Cert) Create() (err error) {
 	}
 
 	certFile.WriteString(public)
-	fmt.Println("==> Saved " + certFileName)
 
 	pkFile, err := os.Create(pkFileName)
 
@@ -125,7 +120,6 @@ func (c *Cert) Create() (err error) {
 	}
 
 	pkFile.WriteString(private)
-	fmt.Println("==> Saved " + pkFileName)
 
 	return nil
 }

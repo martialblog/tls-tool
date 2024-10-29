@@ -14,9 +14,19 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"os"
 	"strings"
 	"time"
 )
+
+// fileDoesNotExist tests if a given file exists
+func fileDoesNotExist(file string) bool {
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		return true
+	}
+
+	return false
+}
 
 // GenerateSerialNumber returns random bigint generated with crypto/rand
 func GenerateSerialNumber() (*big.Int, error) {

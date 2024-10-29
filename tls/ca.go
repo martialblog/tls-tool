@@ -1,12 +1,9 @@
-package ca
+package tls
 
 import (
 	"crypto/x509/pkix"
 	"errors"
-	"fmt"
 	"os"
-
-	"github.com/ribbybibby/tls-tool/tls"
 )
 
 // CA is a certificate authority
@@ -18,26 +15,27 @@ type CA struct {
 	Days                  int
 }
 
-// Create creates the CA
+// Create creates the CA certificate and key
 func (ca *CA) Create() (err error) {
-	certFileName := "ca.pem"
-	pkFileName := "ca-key.pem"
+	const certFileName = "ca.pem"
 
-	if !(tls.FileDoesNotExist(certFileName)) {
-		return errors.New(certFileName + " already exists!")
+	const pkFileName = "ca-key.pem"
+
+	if !(fileDoesNotExist(certFileName)) {
+		return errors.New(certFileName + " already exists")
 	}
 
-	if !(tls.FileDoesNotExist(pkFileName)) {
-		return errors.New(pkFileName + " already exists!")
+	if !(fileDoesNotExist(pkFileName)) {
+		return errors.New(pkFileName + " already exists")
 	}
 
-	serialNumber, err := tls.GenerateSerialNumber()
+	serialNumber, err := GenerateSerialNumber()
 
 	if err != nil {
 		return err
 	}
 
-	signer, pk, err := tls.GeneratePrivateKey()
+	signer, pk, err := GeneratePrivateKey()
 
 	if err != nil {
 		return err
@@ -53,7 +51,7 @@ func (ca *CA) Create() (err error) {
 		ca.Subject.CommonName = ca.Domain + " " + serialNumber.String()
 	}
 
-	caCert, err := tls.GenerateCA(signer, serialNumber, ca.Days, constraints, ca.Subject)
+	caCert, err := GenerateCA(signer, serialNumber, ca.Days, constraints, ca.Subject)
 
 	if err != nil {
 		return err
@@ -66,7 +64,6 @@ func (ca *CA) Create() (err error) {
 	}
 
 	caFile.WriteString(caCert)
-	fmt.Println("==> Saved " + certFileName)
 
 	pkFile, err := os.Create(pkFileName)
 
@@ -75,7 +72,6 @@ func (ca *CA) Create() (err error) {
 	}
 
 	pkFile.WriteString(pk)
-	fmt.Println("==> Saved " + pkFileName)
 
 	return nil
 }
