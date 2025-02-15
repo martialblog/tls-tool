@@ -20,6 +20,7 @@ type Cert struct {
 	DNSNames    []string
 	IPAddresses []net.IP
 	Insecure    bool
+	ExtKeyUsage []x509.ExtKeyUsage
 }
 
 // Create the certificate
@@ -28,7 +29,6 @@ func (c *Cert) Create() (err error) {
 		signer       crypto.Signer
 		serialNumber *big.Int
 		dnsnames     []string
-		extKeyUsage  []x509.ExtKeyUsage
 		prefix       string
 	)
 
@@ -48,13 +48,11 @@ func (c *Cert) Create() (err error) {
 
 	dnsnames = append(dnsnames, []string{c.Domain, "localhost"}...)
 
-	// TODO make these a CLI flag
-	extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth}
 	prefix = "cert-" + c.Domain
 
 	var pkFileName, certFileName string
 
-	// TODO might be a cleaner way of doing this
+	// TODO: We could loop over the existing key-.pem files and just add 1
 	for i := range 100 {
 		tmpCert := fmt.Sprintf("%s-%d.pem", prefix, i)
 		tmpPk := fmt.Sprintf("%s-%d-key.pem", prefix, i)
@@ -96,7 +94,15 @@ func (c *Cert) Create() (err error) {
 		return err
 	}
 
-	public, private, err := GenerateCert(signer, string(caCert), serialNumber, c.Domain, c.Days, dnsnames, c.IPAddresses, extKeyUsage)
+	public, private, err := GenerateCert(
+		signer,
+		string(caCert),
+		serialNumber,
+		c.Domain,
+		c.Days,
+		dnsnames,
+		c.IPAddresses,
+		c.ExtKeyUsage)
 
 	if err != nil {
 		return err
