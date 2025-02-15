@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/x509"
 	"crypto/x509/pkix"
+	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -10,6 +12,23 @@ import (
 
 	"github.com/ribbybibby/tls-tool/tls"
 )
+
+var availableExtKeyUsage = map[string]x509.ExtKeyUsage{
+	"any":                            x509.ExtKeyUsageAny,
+	"serverauth":                     x509.ExtKeyUsageServerAuth,
+	"clientauth":                     x509.ExtKeyUsageClientAuth,
+	"codesigning":                    x509.ExtKeyUsageCodeSigning,
+	"emailprotection":                x509.ExtKeyUsageEmailProtection,
+	"ipsecendsystem":                 x509.ExtKeyUsageIPSECEndSystem,
+	"ipsectunnel":                    x509.ExtKeyUsageIPSECTunnel,
+	"ipsecuser":                      x509.ExtKeyUsageIPSECUser,
+	"timestamping":                   x509.ExtKeyUsageTimeStamping,
+	"ocspsigning":                    x509.ExtKeyUsageOCSPSigning,
+	"microsoftservergatedcrypto":     x509.ExtKeyUsageMicrosoftServerGatedCrypto,
+	"netscapeservergatedcrypto":      x509.ExtKeyUsageNetscapeServerGatedCrypto,
+	"microsoftcommercialcodesigning": x509.ExtKeyUsageMicrosoftCommercialCodeSigning,
+	"microsoftkernelcodesigning":     x509.ExtKeyUsageMicrosoftKernelCodeSigning,
+}
 
 func printError(err error) {
 	fmt.Fprintln(os.Stderr, err.Error())
@@ -26,6 +45,24 @@ Available Commands:
 	ca     Create a new certificate authority
 	cert   Create a new key and certificate`)
 	os.Exit(1)
+}
+
+type ekuSliceFlag []x509.ExtKeyUsage
+
+func (n *ekuSliceFlag) String() string {
+	return ""
+}
+
+func (n *ekuSliceFlag) Set(key string) error {
+	value, exists := availableExtKeyUsage[strings.ToLower(key)]
+
+	if !exists {
+		return errors.New("invalid parameter for Extended Key Usage. See README for available values")
+	}
+
+	*n = append(*n, value)
+
+	return nil
 }
 
 // stringSliceFlag stores multiple string flags
@@ -90,8 +127,11 @@ func main() {
 
 	var certCreateIPaddresses ipsliceFlag
 
+	var certExtKeyUsages ekuSliceFlag
+
 	certCmd.Var(&certCreateAdditionalDNSnames, "additional-dnsname", "Provide additional dnsnames for Subject Alternative Names")
 	certCmd.Var(&certCreateIPaddresses, "ipaddresses", "Provide IPs for Subject Alternative Names")
+	certCmd.Var(&certExtKeyUsages, "eku", "Provide specific EKU flags for the certificate (default: Any)")
 
 	certCreateCAFile := certCmd.String("ca", "ca.pem", "Path to the CA certificate file")
 	certCreateKeyFile := certCmd.String("key", "ca-key.pem", "Path to the CA key file")
@@ -137,6 +177,11 @@ func main() {
 			printError(parseErr)
 		}
 
+		// If no EKU flags are set, we just use Any
+		if len(certExtKeyUsages) == 0 {
+			certExtKeyUsages = append(certExtKeyUsages, x509.ExtKeyUsageAny)
+		}
+
 		c := &tls.Cert{
 			CAFile:      *certCreateCAFile,
 			Days:        *certCreateDays,
@@ -145,6 +190,7 @@ func main() {
 			Insecure:    *certCreateInsecure,
 			KeyFile:     *certCreateKeyFile,
 			IPAddresses: certCreateIPaddresses,
+			ExtKeyUsage: certExtKeyUsages,
 		}
 		err := c.Create()
 

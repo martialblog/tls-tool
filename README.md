@@ -98,12 +98,41 @@ cert-ribbybibby.me-0.pem
 cert-ribbybibby.me-0-key.pem
 ```
 
+With additional names:
+
 ```bash
 tls-tool cert -additional-dnsname foobar.internal -additional-dnsname example.internal
 
 cert-ribbybibby.me-1.pem
 cert-ribbybibby.me-1-key.pem
 ```
+
+With a specific extended key usage:
+
+```bash
+tls-tool cert -eku serverauth -eku clientauth
+```
+
+Available values are (case-insensitive):
+
+| CLI Flag                            | Value                                           |
+|-------------------------------------|-------------------------------------------------|
+| any                                 | x509.ExtKeyUsageAny                             |
+| serverauth                          | x509.ExtKeyUsageServerAuth                      |
+| clientauth                          | x509.ExtKeyUsageClientAuth                      |
+| codesigning                         | x509.ExtKeyUsageCodeSigning                     |
+| emailprotection                     | x509.ExtKeyUsageEmailProtection                 |
+| ipsecendsystem                      | x509.ExtKeyUsageIPSECEndSystem                  |
+| ipsectunnel                         | x509.ExtKeyUsageIPSECTunnel                     |
+| ipsecuser                           | x509.ExtKeyUsageIPSECUser                       |
+| timestamping                        | x509.ExtKeyUsageTimeStamping                    |
+| ocspsigning                         | x509.ExtKeyUsageOCSPSigning                     |
+| microsoftservergatedcrypto          | x509.ExtKeyUsageMicrosoftServerGatedCrypto      |
+| netscapeservergatedcrypto           | x509.ExtKeyUsageNetscapeServerGatedCrypto       |
+| microsoftcommercialcodesigning      | x509.ExtKeyUsageMicrosoftCommercialCodeSigning  |
+| microsoftkernelcodesigning          | x509.ExtKeyUsageMicrosoftKernelCodeSigning      |
+
+See: https://pkg.go.dev/crypto/x509#ExtKeyUsage
 
 Verification:
 
