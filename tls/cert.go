@@ -53,8 +53,9 @@ func (c *Cert) Create() (err error) {
 	prefix = "cert-" + c.Domain
 
 	var pkFileName, certFileName string
+
 	// TODO might be a cleaner way of doing this
-	for i := 0; i <= 100; i++ {
+	for i := range 100 {
 		tmpCert := fmt.Sprintf("%s-%d.pem", prefix, i)
 		tmpPk := fmt.Sprintf("%s-%d-key.pem", prefix, i)
 
