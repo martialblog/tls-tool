@@ -13,7 +13,8 @@ usage: tls-tool [<flags>] <command> [<args> ...]
 A tool for creating TLS certificates quickly
 
 Flags:
-  -help  Show context-sensitive help
+  -help    Show help
+  -version Show version
 
 Commands:
   ca [<flags>]
@@ -117,7 +118,7 @@ tls-tool cert -eku serverauth -eku clientauth
 
 Available values are (case-insensitive):
 
-| CLI Flag                            | Value                                           |
+| CLI value                           | EKU                                             |
 |-------------------------------------|-------------------------------------------------|
 | any                                 | x509.ExtKeyUsageAny                             |
 | serverauth                          | x509.ExtKeyUsageServerAuth                      |
