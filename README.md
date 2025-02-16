@@ -1,5 +1,7 @@
 # tls-tool
 
+A tool for creating a demo certificate authority (CA) and self signed certificates quickly.
+
 Fork of https://github.com/ribbybibby/tls-tool
 
 ## Usage
