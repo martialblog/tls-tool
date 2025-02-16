@@ -2,7 +2,10 @@
 
 build:
 	CGO_ENABLED=0 go build \
-       -ldflags="-s -w" \
+       -ldflags="-s -w \
+       -X main.version=$(VERSION) \
+       -X main.commit=$(COMMIT) \
+       -X main.date=$(DATE)" \
 	tls-tool.go
 release:
 	goreleaser release --snapshot --clean
@@ -16,4 +19,4 @@ coverage:
 	go test -v -cover -coverprofile=coverage.out ./... &&\
 	go tool cover -html=coverage.out -o coverage.html
 clean:
-	rm -f build/* dist/* *.pem ./tls-tool
+	rm -rf build/* dist/* *.pem ./tls-tool

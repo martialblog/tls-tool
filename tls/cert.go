@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -29,7 +30,6 @@ func (c *Cert) Create() (err error) {
 		signer       crypto.Signer
 		serialNumber *big.Int
 		dnsnames     []string
-		prefix       string
 	)
 
 	if c.CAFile == "" {
@@ -48,24 +48,20 @@ func (c *Cert) Create() (err error) {
 
 	dnsnames = append(dnsnames, []string{c.Domain, "localhost"}...)
 
-	prefix = "cert-" + c.Domain
-
 	var pkFileName, certFileName string
 
-	// TODO: We could loop over the existing key-.pem files and just add 1
-	for i := range 100 {
-		tmpCert := fmt.Sprintf("%s-%d.pem", prefix, i)
-		tmpPk := fmt.Sprintf("%s-%d-key.pem", prefix, i)
+	// Check now many cert and key pairs have been created already
+	createdCerts, _ := filepath.Glob("*-key.pem")
+
+	for i := range createdCerts {
+		tmpCert := fmt.Sprintf("%s-%d-cert.pem", c.Domain, i)
+		tmpPk := fmt.Sprintf("%s-%d-key.pem", c.Domain, i)
 
 		if fileDoesNotExist(tmpCert) && fileDoesNotExist(tmpPk) {
 			certFileName = tmpCert
 			pkFileName = tmpPk
 
 			break
-		}
-
-		if i == 100 {
-			return errors.New("could not find a filename that doesn't already exist")
 		}
 	}
 
