@@ -1,3 +1,7 @@
 tls-tool
 *.pem
 **.pem
+TODO*
+
+build/
+dist/

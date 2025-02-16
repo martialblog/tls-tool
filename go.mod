@@ -1,3 +1,3 @@
-module github.com/ribbybibby/tls-tool
+module github.com/martialblog/tls-tool
 
-go 1.23
+go 1.24
