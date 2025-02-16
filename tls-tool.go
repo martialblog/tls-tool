@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ribbybibby/tls-tool/tls"
+	"github.com/martialblog/tls-tool/tls"
 )
 
 var availableExtKeyUsage = map[string]x509.ExtKeyUsage{
@@ -36,7 +36,7 @@ func printError(err error) {
 }
 
 func printUsage() {
-	fmt.Fprintln(os.Stderr, `A tool for creating TLS certificates quickly
+	fmt.Fprintln(os.Stderr, `A tool for creating a demo certificate authority (CA) and self signed certificates quickly.
 
 Usage:
 	tls-tool [command]
