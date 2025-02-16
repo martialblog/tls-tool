@@ -13,6 +13,13 @@ import (
 	"github.com/martialblog/tls-tool/tls"
 )
 
+// nolint: gochecknoglobals
+var (
+	version = "development"
+	commit  = "HEAD"
+	date    = "latest"
+)
+
 var availableExtKeyUsage = map[string]x509.ExtKeyUsage{
 	"any":                            x509.ExtKeyUsageAny,
 	"serverauth":                     x509.ExtKeyUsageServerAuth,
@@ -30,6 +37,21 @@ var availableExtKeyUsage = map[string]x509.ExtKeyUsage{
 	"microsoftkernelcodesigning":     x509.ExtKeyUsageMicrosoftKernelCodeSigning,
 }
 
+func printVersion() {
+	out := "version: " + version
+
+	if commit != "" {
+		out = fmt.Sprintf("%s\ncommit: %s", out, commit)
+	}
+
+	if date != "" {
+		out = fmt.Sprintf("%s\ndate: %s", out, date)
+	}
+
+	fmt.Fprintln(os.Stdout, out)
+	os.Exit(0)
+}
+
 func printError(err error) {
 	fmt.Fprintln(os.Stderr, err.Error())
 	os.Exit(1)
@@ -42,8 +64,9 @@ Usage:
 	tls-tool [command]
 
 Available Commands:
-	ca     Create a new certificate authority
-	cert   Create a new key and certificate`)
+	-version Output version information and exit
+	ca       Create a new certificate authority
+	cert     Create a new key and certificate`)
 	os.Exit(1)
 }
 
@@ -105,6 +128,8 @@ func (s *ipsliceFlag) String() string {
 func main() {
 	flag.Usage = printUsage
 
+	versionFlag := flag.Bool("version", false, "output version information and exit")
+
 	caCmd := flag.NewFlagSet("ca", flag.ExitOnError)
 
 	var caCreateAdditionalNameConstraints stringSliceFlag
@@ -141,6 +166,12 @@ func main() {
 
 	if len(os.Args) < 2 {
 		printUsage()
+	}
+
+	flag.Parse()
+
+	if *versionFlag {
+		printVersion()
 	}
 
 	switch os.Args[1] {

@@ -2,7 +2,10 @@
 
 build:
 	CGO_ENABLED=0 go build \
-       -ldflags="-s -w" \
+       -ldflags="-s -w \
+       -X main.version=$(VERSION) \
+       -X main.commit=$(COMMIT) \
+       -X main.date=$(DATE)" \
 	tls-tool.go
 release:
 	goreleaser release --snapshot --clean
