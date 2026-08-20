@@ -66,26 +66,23 @@ func (c *Cert) Create() (err error) {
 	}
 
 	var caCert, caKey []byte
-	caCert, err = os.ReadFile(c.CAFile)
 
+	caCert, err = os.ReadFile(c.CAFile)
 	if err != nil {
 		return fmt.Errorf("error reading CA: %w", err)
 	}
 
 	caKey, err = os.ReadFile(c.KeyFile)
-
 	if err != nil {
 		return fmt.Errorf("error reading CA key: %w", err)
 	}
 
 	signer, err = ParseSigner(string(caKey))
-
 	if err != nil {
 		return err
 	}
 
 	serialNumber, err = GenerateSerialNumber()
-
 	if err != nil {
 		return err
 	}
@@ -99,17 +96,16 @@ func (c *Cert) Create() (err error) {
 		dnsnames,
 		c.IPAddresses,
 		c.ExtKeyUsage)
-
 	if err != nil {
 		return err
 	}
 
-	if err = Verify(string(caCert), public, c.Domain); err != nil && !c.Insecure {
-		return err
+	errVerify := Verify(string(caCert), public, c.Domain)
+	if errVerify != nil && !c.Insecure {
+		return errVerify
 	}
 
 	certFile, err := os.Create(certFileName)
-
 	if err != nil {
 		return err
 	}
@@ -118,7 +114,6 @@ func (c *Cert) Create() (err error) {
 	certFile.WriteString(public)
 
 	pkFile, err := os.Create(pkFileName)
-
 	if err != nil {
 		return err
 	}

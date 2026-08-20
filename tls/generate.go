@@ -21,18 +21,16 @@ import (
 
 // fileDoesNotExist tests if a given file exists
 func fileDoesNotExist(file string) bool {
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		return true
-	}
+	_, err := os.Stat(file)
 
-	return false
+	return os.IsNotExist(err)
 }
 
 // GenerateSerialNumber returns random bigint generated with crypto/rand
 func GenerateSerialNumber() (*big.Int, error) {
 	l := new(big.Int).Lsh(big.NewInt(1), 128)
-	s, err := rand.Int(rand.Reader, l)
 
+	s, err := rand.Int(rand.Reader, l)
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +41,11 @@ func GenerateSerialNumber() (*big.Int, error) {
 // GeneratePrivateKey generates a new ecdsa private key
 func GeneratePrivateKey() (crypto.Signer, string, error) {
 	pk, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-
 	if err != nil {
 		return nil, "", fmt.Errorf("error generating private key: %w", err)
 	}
 
 	bs, err := x509.MarshalECPrivateKey(pk)
-
 	if err != nil {
 		return nil, "", fmt.Errorf("error generating private key: %w", err)
 	}
@@ -57,7 +53,6 @@ func GeneratePrivateKey() (crypto.Signer, string, error) {
 	var buf bytes.Buffer
 
 	err = pem.Encode(&buf, &pem.Block{Type: "EC PRIVATE KEY", Bytes: bs})
-
 	if err != nil {
 		return nil, "", fmt.Errorf("error encoding private key: %w", err)
 	}
@@ -91,7 +86,6 @@ func GenerateCA(signer crypto.Signer, sn *big.Int, days int, constraints []strin
 	}
 
 	bs, err := x509.CreateCertificate(rand.Reader, &template, &template, signer.Public(), signer)
-
 	if err != nil {
 		return "", fmt.Errorf("error generating CA certificate: %w", err)
 	}
@@ -99,7 +93,6 @@ func GenerateCA(signer crypto.Signer, sn *big.Int, days int, constraints []strin
 	var buf bytes.Buffer
 
 	err = pem.Encode(&buf, &pem.Block{Type: "CERTIFICATE", Bytes: bs})
-
 	if err != nil {
 		return "", fmt.Errorf("error encoding private key: %w", err)
 	}
@@ -139,7 +132,6 @@ func GenerateCert(signer crypto.Signer, ca string, sn *big.Int, name string, day
 	}
 
 	bs, err := x509.CreateCertificate(rand.Reader, &template, parent, signee.Public(), signer)
-
 	if err != nil {
 		return "", "", err
 	}
@@ -147,7 +139,6 @@ func GenerateCert(signer crypto.Signer, ca string, sn *big.Int, name string, day
 	var buf bytes.Buffer
 
 	err = pem.Encode(&buf, &pem.Block{Type: "CERTIFICATE", Bytes: bs})
-
 	if err != nil {
 		return "", "", fmt.Errorf("error encoding private key: %w", err)
 	}
@@ -156,7 +147,7 @@ func GenerateCert(signer crypto.Signer, ca string, sn *big.Int, name string, day
 }
 
 // keyId returns a x509 KeyId from the given signing key.
-func keyID(raw interface{}) ([]byte, error) {
+func keyID(raw any) ([]byte, error) {
 	switch raw.(type) {
 	case *ecdsa.PublicKey:
 	default:
@@ -218,7 +209,6 @@ func Verify(caString, certString, dns string) error {
 	}
 
 	cert, err := parseCert(certString)
-
 	if err != nil {
 		return errors.New("failed to parse certificate")
 	}
