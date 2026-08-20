@@ -3,7 +3,13 @@ run:
   tests: false
 linters:
   default: all
+  enable:
+    - wsl_v5
+    - gomodguard_v2
   disable:
+    - goconst
+    - wsl
+    - gomodguard
     - cyclop
     - depguard
     - err113

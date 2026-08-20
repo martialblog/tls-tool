@@ -177,7 +177,6 @@ func main() {
 	switch os.Args[1] {
 	case "ca":
 		parseErr := caCmd.Parse(os.Args[2:])
-
 		if parseErr != nil {
 			printError(parseErr)
 		}
@@ -196,14 +195,13 @@ func main() {
 				Organization:  []string{*caCreateOrganization},
 			},
 		}
-		err := c.Create()
 
+		err := c.Create()
 		if err != nil {
 			printError(err)
 		}
 	case "cert":
 		parseErr := certCmd.Parse(os.Args[2:])
-
 		if parseErr != nil {
 			printError(parseErr)
 		}
@@ -223,8 +221,8 @@ func main() {
 			IPAddresses: certCreateIPaddresses,
 			ExtKeyUsage: certExtKeyUsages,
 		}
-		err := c.Create()
 
+		err := c.Create()
 		if err != nil {
 			printError(err)
 		}

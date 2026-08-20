@@ -31,13 +31,11 @@ func (ca *CA) Create() (err error) {
 	}
 
 	serialNumber, err := GenerateSerialNumber()
-
 	if err != nil {
 		return err
 	}
 
 	signer, pk, err := GeneratePrivateKey()
-
 	if err != nil {
 		return err
 	}
@@ -53,13 +51,11 @@ func (ca *CA) Create() (err error) {
 	}
 
 	caCert, err := GenerateCA(signer, serialNumber, ca.Days, constraints, ca.Subject)
-
 	if err != nil {
 		return err
 	}
 
 	caFile, err := os.Create(certFileName)
-
 	if err != nil {
 		return err
 	}
@@ -68,7 +64,6 @@ func (ca *CA) Create() (err error) {
 	caFile.WriteString(caCert)
 
 	pkFile, err := os.Create(pkFileName)
-
 	if err != nil {
 		return err
 	}
